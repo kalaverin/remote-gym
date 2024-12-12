@@ -269,7 +269,7 @@ Make virtualenv for project build & test tools, install pre-push hook.
 ```bash
 
     if [ ! -d ".venv" ]; then
-        virtualenv --python python3.11 ".venv"
+        virtualenv --python python3.9 ".venv"
         .venv/bin/python -m pip install --upgrade pip
         .venv/bin/python -m pip install --upgrade \
             pipdeptree \

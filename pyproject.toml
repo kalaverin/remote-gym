@@ -9,14 +9,11 @@ extend = "ci/pyproject.toml"
 
 [tool.poetry]
 
-name = "remote-gym"
 version = "0.5.0"
 description = "This is a module to run Gym environments remotely, to enable splitting environment hosting and agent training into separate processes (or even separate machines)."
-authors = ["Alexander Zap"]
-
 authors = [
   "Alex Kalaverin <alex@kalaver.in>",
-  "Alexander Zap <>"
+  "Alexander Zap <a_zap@wargaming.net>"
 ]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -29,7 +26,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent"
 ]
-description = "A comprehensive set of advanced utilities for Python programming, e.g. HTTP communication, string handling, logging enhancements, introspection, dynamic importing, property caching descriptors, data class extensions, serialization, etc."
 homepage = "https://kalaver.in"
 keywords = [
   "dataclass",
@@ -51,10 +47,10 @@ packages = [
 ]
 include = ["src/remote_gym/res/*"]
 readme = "README.md"
-version = "0.5.0"
 
-python = ">=3.8,<3.11"
-setuptools = "^68.0"
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+setuptools = "^75.6.0"
 gymnasium = "^0.29.0"
 gym = "^0.26.2"
 protobuf = ">=3.20, <5"
@@ -72,8 +68,8 @@ gym = { version = "^0.26.2", extras = ["classic-control"] }
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3"
-pre-commit = "^2.21.0"
-ruff = "^0.1.6"
+pre-commit = "^4.0.1"
+ruff = "^0.8.3"
 
 [tool.ruff]
 extend = "ci/pyproject.toml"

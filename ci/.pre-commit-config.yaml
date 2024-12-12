@@ -6,7 +6,7 @@ ci:
   autoupdate_schedule: monthly
 
 default_language_version:
-  python: python3.8
+  python: python3.9
 
 fail_fast: true
 
