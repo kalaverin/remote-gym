@@ -82,7 +82,23 @@ extend = "ci/pyproject.toml"
 
 [tool.ruff.lint.isort]
 known-first-party = [
-  "kalib"
+  "remote_gym"
+]
+known-third-party = [
+  "dm_env",
+  "dm_env_rpc",
+  "fasteners",
+  "google",
+  "gymnasium",
+  "tqdm",
+  "cv2",
+  "git",
+  "grpc",
+  "gym",
+  "gymnasium",
+  "numpy",
+  "psutil",
+  "typing_extensions"
 ]
 
 [tool.versioneer]
