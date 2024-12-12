@@ -365,7 +365,7 @@ After validating the readiness for an update, it prompts to proceed. Once confir
     fi
 
     git fetch --tags --force
-    current="$(git describe --tags --abbrev=0)" || retval="$?"
+    current="$(git tag --list | sort -rV | head -n 1)" || retval="$?"
     if [ "$retval" -eq 128 ]; then
         current="0.0.0"
     elif [ "$retval" -gt 0 ]; then
