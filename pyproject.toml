@@ -25,7 +25,9 @@ classifiers = [
 ]
 description = "This is a module to run Gym environments remotely, to enable splitting environment hosting and agent training into separate processes (or even separate machines)."
 homepage = "https://kalaver.in"
-include = ["src/remote_gym/res/*"]
+include = [
+  "src/remote_gym/res/*"
+]
 keywords = [
   "dataclass",
   "decorators",
@@ -45,7 +47,7 @@ packages = [
   {include = "remote_gym", from = "src"}
 ]
 readme = "README.md"
-version = "0.5.0"
+version = "0.5.1"
 
 [tool.poetry.dependencies]
 dm-env-rpc = "^1.1.6"
@@ -65,10 +67,15 @@ pre-commit = "^4.0.1"
 ruff = "^0.8.3"
 
 [tool.poetry.group.test.dependencies]
-gym = {version = "^0.26.2", extras = ["classic-control"]}
 pytest = "^7.2"
 pytest-cov = "^4.0"
 tqdm = "^4.66.1"
+
+[tool.poetry.group.test.dependencies.gym]
+extras = [
+  "classic-control"
+]
+version = "^0.26.2"
 
 [tool.ruff]
 extend = "ci/pyproject.toml"
