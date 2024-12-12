@@ -8,48 +8,48 @@ root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 root.addHandler(handler)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-u",
-        "--url",
+        '-u',
+        '--url',
         type=str,
-        help="URL of the machine on which the environment should be hosted",
-        default="localhost",
+        help='URL of the machine on which the environment should be hosted',
+        default='localhost',
     )
     parser.add_argument(
-        "-p",
-        "--port",
+        '-p',
+        '--port',
         type=int,
-        help="Port of the environment hosting machine for gRPC communication",
+        help='Port of the environment hosting machine for gRPC communication',
         default=56789,
     )
     parser.add_argument(
-        "--use_thread",
-        action="store_true",
-        help="Use threads rather than processes.",
+        '--use_thread',
+        action='store_true',
+        help='Use threads rather than processes.',
         default=False,
     )
     parser.add_argument(
-        "--server_certificate",
+        '--server_certificate',
         type=str,
-        help="Path to the self-signed server certificate (for TLS authentication)",  # server.pem
+        help='Path to the self-signed server certificate (for TLS authentication)',  # server.pem
         default=None,
     )
     parser.add_argument(
-        "--server_private_key",
+        '--server_private_key',
         type=str,
-        help="Path to the self-signed server private key (for TLS authentication)",  # server-key.pem
+        help='Path to the self-signed server private key (for TLS authentication)',  # server-key.pem
         default=None,
     )
     parser.add_argument(
-        "--root_certificate",
+        '--root_certificate',
         type=str,
-        help="Path to the root certificate (for TLS authentication)",  # ca.pem
+        help='Path to the root certificate (for TLS authentication)',  # ca.pem
         default=None,
     )
     args = parser.parse_args()
@@ -61,12 +61,12 @@ if __name__ == "__main__":
     server = create_remote_environment_server(
         default_args={
             # Server options
-            "repo": "git@github.com:Luke100000/remote-gym.git",
-            "reference": "master",
-            "entrypoint": "exploration/remote_environment_entrypoint.py",
-            "entrypoint_kwargs": {
-                "env": "Acrobot-v1",
-                "render_mode": "rgb_array",
+            'repo': 'git@github.com:Luke100000/remote-gym.git',
+            'reference': 'master',
+            'entrypoint': 'exploration/remote_environment_entrypoint.py',
+            'entrypoint_kwargs': {
+                'env': 'Acrobot-v1',
+                'render_mode': 'rgb_array',
             },
         },
         url=url,

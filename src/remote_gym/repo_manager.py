@@ -7,7 +7,7 @@ from fasteners import InterProcessLock
 
 
 def base64hash(string: str):
-    return hashlib.sha256(string.encode("utf-8")).hexdigest()
+    return hashlib.sha256(string.encode('utf-8')).hexdigest()
 
 
 def clone_and_checkout(directory: Path, repository: str, ref: Optional[str]):
@@ -21,14 +21,14 @@ def clone_and_checkout(directory: Path, repository: str, ref: Optional[str]):
 
     # Use the masters remote head by default
     if ref is None:
-        ref = "HEAD"
+        ref = 'HEAD'
 
-    if ("origin/" + ref) in repo.references:
-        commit = repo.commit("origin/" + ref)
+    if ('origin/' + ref) in repo.references:
+        commit = repo.commit('origin/' + ref)
     else:
         commit = repo.commit(ref)
 
-    repo.git.reset("--hard", commit)
+    repo.git.reset('--hard', commit)
 
 
 class RepoManager:
@@ -36,13 +36,13 @@ class RepoManager:
     Clones and keeps repositories up to date.
     """
 
-    def __init__(self, working_dir: Path = Path(".repo_cache")):
+    def __init__(self, working_dir: Path = Path('.repo_cache')):
         """
         Args:
             working_dir: The cache directory for locally cloned repositories.
         """
         self.working_dir = working_dir
-        self.lock = InterProcessLock(self.working_dir / "lock")
+        self.lock = InterProcessLock(self.working_dir / 'lock')
 
     def get(self, repository: str, reference: str = None) -> Path:
         """
@@ -58,7 +58,7 @@ class RepoManager:
         """
         self.working_dir.mkdir(exist_ok=True)
 
-        target_dir = self.working_dir / f"{base64hash(repository + str(reference))}"
+        target_dir = self.working_dir / f'{base64hash(repository + str(reference))}'
 
         with self.lock:
             clone_and_checkout(target_dir, repository, reference)

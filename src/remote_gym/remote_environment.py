@@ -50,7 +50,7 @@ class RemoteArgs(TypedDict):
     repo: Optional[str]
     reference: Optional[str]
     entrypoint: Optional[str]
-    entrypoint_kwargs: Dict[str, any]
+    entrypoint_kwargs: dict[str, any]
 
 
 class RemoteEnvironment(Env):
@@ -94,11 +94,11 @@ class RemoteEnvironment(Env):
 
     def __init__(
         self,
-        url: Text,
+        url: str,
         port: int,
         remote_args: RemoteArgs = {},
-        client_credentials_paths: Optional[Tuple[Text, Optional[Text], Optional[Text]]] = None,
-        render_mode: Text = None,
+        client_credentials_paths: Optional[tuple[str, Optional[str], Optional[str]]] = None,
+        render_mode: str = None,
         *args,
         **kwargs,
     ):
@@ -130,34 +130,31 @@ class RemoteEnvironment(Env):
         def convert_to_space(spec: specs.Array) -> Space:
             if isinstance(spec, specs.DiscreteArray):
                 return Discrete(n=spec.num_values)
-            elif isinstance(spec, specs.BoundedArray):
+            if isinstance(spec, specs.BoundedArray):
                 # UInt-check required for detecting pixel-based RGB observations (should be embedded in the Box space)
-                if np.issubdtype(spec.dtype, np.integer) and not spec.dtype == np.uint8:
+                if np.issubdtype(spec.dtype, np.integer) and spec.dtype != np.uint8:
                     return MultiDiscrete(spec.maximum + 1)
-                else:
-                    _min = spec.minimum
-                    _max = spec.maximum
+                _min = spec.minimum
+                _max = spec.maximum
 
-                    if np.isscalar(_min) and np.isscalar(_max):
-                        # same min and max for every element
-                        return Box(low=_min, high=_max, shape=spec.shape, dtype=spec.dtype)
-                    else:
-                        # different min and max for every element
-                        return Box(
-                            low=_min + np.zeros(shape=spec.shape, dtype=spec.dtype),
-                            high=_max + np.zeros(shape=spec.shape, dtype=spec.dtype),
-                            shape=spec.shape,
-                            dtype=spec.dtype,
-                        )
-            else:
-                if isinstance(spec, specs.Array):
-                    logging.error(f"Unable to transform dm_env.spec {type(spec)} to Gym space.")
-                    # return Box(-np.inf, np.inf, shape=spec.shape, dtype=spec.dtype)
-                else:
-                    logging.error(f"{type(spec)} is not a known dm_env.spec.")
-                raise ValueError(
-                    "Unsupported spec. Support for new dm_env.specs can be added at the location of this raised error."
+                if np.isscalar(_min) and np.isscalar(_max):
+                    # same min and max for every element
+                    return Box(low=_min, high=_max, shape=spec.shape, dtype=spec.dtype)
+                # different min and max for every element
+                return Box(
+                    low=_min + np.zeros(shape=spec.shape, dtype=spec.dtype),
+                    high=_max + np.zeros(shape=spec.shape, dtype=spec.dtype),
+                    shape=spec.shape,
+                    dtype=spec.dtype,
                 )
+            if isinstance(spec, specs.Array):
+                logging.error(f'Unable to transform dm_env.spec {type(spec)} to Gym space.')
+                # return Box(-np.inf, np.inf, shape=spec.shape, dtype=spec.dtype)
+            else:
+                logging.error(f'{type(spec)} is not a known dm_env.spec.')
+            raise ValueError(
+                'Unsupported spec. Support for new dm_env.specs can be added at the location of this raised error.',
+            )
 
         self.url = url
         self.port = port
@@ -167,8 +164,8 @@ class RemoteEnvironment(Env):
         self.connection, self.remote_environment = self._connect_to_remote_environment()
 
         # Set local environment attributes retrieved from remote wrapper
-        action_spec = self.remote_environment.action_spec()["action"]
-        observation_spec = self.remote_environment.observation_spec()["observation"]
+        action_spec = self.remote_environment.action_spec()['action']
+        observation_spec = self.remote_environment.observation_spec()['observation']
         reward_spec = self.remote_environment.reward_spec()
 
         self._action_space = convert_to_space(action_spec)
@@ -176,7 +173,7 @@ class RemoteEnvironment(Env):
         self._reward_range = (
             (reward_spec.minimum, reward_spec.maximum)
             if isinstance(reward_spec, specs.BoundedArray)
-            else (-float("inf"), float("inf"))
+            else (-float('inf'), float('inf'))
         )
 
         # Set local environment attributes for rendering
@@ -185,18 +182,18 @@ class RemoteEnvironment(Env):
 
         self._disconnect_from_remote_environment()
 
-    def step(self, action, *args, **kwargs) -> Tuple[object, SupportsFloat, bool, bool, dict]:
+    def step(self, action, *args, **kwargs) -> tuple[object, SupportsFloat, bool, bool, dict]:
         """
         Run one timestep of the environment's dynamics.
         Accepts an action and returns a tuple (observation, reward, done, info).
         """
         if self.remote_environment is None:
-            raise RuntimeError("Environment not connected to remote environment, call reset first!.")
+            raise RuntimeError('Environment not connected to remote environment, call reset first!.')
 
-        timestep = self.remote_environment.step({"action": action})
+        timestep = self.remote_environment.step({'action': action})
 
-        observation = timestep.observation.get("observation")
-        self.latest_image = timestep.observation.get("rendering", None)
+        observation = timestep.observation.get('observation')
+        self.latest_image = timestep.observation.get('rendering', None)
         reward = timestep.reward
         discount_factor = timestep.discount
         step_type = timestep.step_type
@@ -206,7 +203,7 @@ class RemoteEnvironment(Env):
 
         if step_type is StepType.LAST:
             # NOTE: Assumption that discount_factor is 0.0 only for termination steps
-            #   See https://github.com/google-deepmind/dm_env/blob/master/dm_env/_environment.py#L228
+            #   See https://github.com/google-deepmind/dm_env/blob/270e2697acc318e99fcec0db4ea8d18649c7900f/dm_env/_environment.py#L228
             if discount_factor == 0.0:
                 terminated = True
             else:
@@ -226,8 +223,8 @@ class RemoteEnvironment(Env):
 
         timestep = self.remote_environment.reset()
 
-        observation = timestep.observation.get("observation")
-        self.latest_image = timestep.observation.get("rendering", None)
+        observation = timestep.observation.get('observation')
+        self.latest_image = timestep.observation.get('rendering', None)
 
         return observation, {}
 
@@ -237,13 +234,13 @@ class RemoteEnvironment(Env):
         """
         if not self._render_mode:
             pass
-        elif self._render_mode == "human":
+        elif self._render_mode == 'human':
             if self.latest_image is not None:
-                cv2.imshow("Remote Environment Rendering", self.latest_image)
+                cv2.imshow('Remote Environment Rendering', self.latest_image)
                 cv2.waitKey(1)
             else:
-                logging.error("Rendering not possible, no image has been returned yet from the environment.")
-        elif self._render_mode == "rgb_array":
+                logging.error('Rendering not possible, no image has been returned yet from the environment.')
+        elif self._render_mode == 'rgb_array':
             return self.latest_image
         else:
             raise NotImplementedError
@@ -253,7 +250,7 @@ class RemoteEnvironment(Env):
 
     def _connect_to_remote_environment(
         self,
-    ) -> Tuple[dm_env_adaptor.dm_env_rpc_connection.Connection, dm_env_adaptor.DmEnvAdaptor]:
+    ) -> tuple[dm_env_adaptor.dm_env_rpc_connection.Connection, dm_env_adaptor.DmEnvAdaptor]:
         def create_channel_credentials() -> grpc.ChannelCredentials:
             """Create client credentials based on given paths in self.client_credentials_paths.
 
@@ -262,35 +259,35 @@ class RemoteEnvironment(Env):
             """
             if self.client_credentials_paths:
                 root_cert_path, client_cert_path, client_private_key_path = self.client_credentials_paths
-                root_cert = open(root_cert_path, "rb").read()
+                root_cert = open(root_cert_path, 'rb').read()
                 client_authentication = True if client_private_key_path and client_cert_path else False
 
-                client_private_key = open(client_private_key_path, "rb").read() if client_authentication else None
-                client_cert_chain = open(client_cert_path, "rb").read() if client_authentication else None
+                client_private_key = open(client_private_key_path, 'rb').read() if client_authentication else None
+                client_cert_chain = open(client_cert_path, 'rb').read() if client_authentication else None
 
                 client_credentials = grpc.ssl_channel_credentials(
-                    root_certificates=root_cert, private_key=client_private_key, certificate_chain=client_cert_chain
+                    root_certificates=root_cert, private_key=client_private_key, certificate_chain=client_cert_chain,
                 )
                 logging.info(
-                    f"Connecting securely to port on {self.url}:{self.port}. "
-                    f"Client authentication is {'ATTEMPTED' if client_authentication else 'OMITTED'}."
+                    f'Connecting securely to port on {self.url}:{self.port}. '
+                    f"Client authentication is {'ATTEMPTED' if client_authentication else 'OMITTED'}.",
                 )
             else:
                 client_credentials = grpc.local_channel_credentials()
                 logging.info(
-                    f"Connecting securely to port on {self.url}:{self.port}. "
-                    f"SSL credentials were not provided, therefore can only connect to local servers."
+                    f'Connecting securely to port on {self.url}:{self.port}. '
+                    f'SSL credentials were not provided, therefore can only connect to local servers.',
                 )
 
             return client_credentials
 
-        server_address = f"{self.url}:{self.port}"
+        server_address = f'{self.url}:{self.port}'
         connection = dm_env_rpc_connection.create_secure_channel_and_connect(
-            server_address, create_channel_credentials()
+            server_address, create_channel_credentials(),
         )
         remote_environment, _ = dm_env_adaptor.create_and_join_world(
             connection,
-            create_world_settings={"args": json.dumps(self.remote_args)},
+            create_world_settings={'args': json.dumps(self.remote_args)},
             join_world_settings={},
         )
         return connection, remote_environment
@@ -309,8 +306,8 @@ class RemoteEnvironment(Env):
         """
         state = self.__dict__.copy()
         # Remove the unpicklable entries
-        del state["connection"]
-        del state["remote_environment"]
+        del state['connection']
+        del state['remote_environment']
         return state
 
     def __setstate__(self, state):

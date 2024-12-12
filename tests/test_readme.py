@@ -5,19 +5,19 @@ def test_readme():
     # Launch server
     server = create_remote_environment_server(
         default_args={
-            "entrypoint": "exploration/remote_environment_entrypoint.py",
-            "entrypoint_kwargs": {
-                "env": "Acrobot-v1",
-                "render_mode": "rgb_array",
+            'entrypoint': 'exploration/remote_environment_entrypoint.py',
+            'entrypoint_kwargs': {
+                'env': 'Acrobot-v1',
+                'render_mode': 'rgb_array',
             },
         },
-        url="localhost",
+        url='localhost',
         port=12345,
     )
 
     # Start environment
     environment = RemoteEnvironment(
-        url="localhost",
+        url='localhost',
         port=12345,
         render_mode=None,
     )
