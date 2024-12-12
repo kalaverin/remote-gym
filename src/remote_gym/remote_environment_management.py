@@ -71,9 +71,9 @@ def create_remote_environment_server(
         server_cert_path, server_private_key_path, root_cert_path = server_credentials_paths
         assert server_cert_path and server_private_key_path
 
-        server_cert_chain = open(server_cert_path, "rb").read()
-        server_private_key = open(server_private_key_path, "rb").read()
-        root_cert = open(root_cert_path, "rb").read() if root_cert_path else None
+        server_cert_chain = open(server_cert_path, 'rb').read()
+        server_private_key = open(server_private_key_path, 'rb').read()
+        root_cert = open(root_cert_path, 'rb').read() if root_cert_path else None
 
         client_authentication_required = True if root_cert is not None else False
         server_credentials = grpc.ssl_server_credentials(
@@ -82,21 +82,21 @@ def create_remote_environment_server(
             require_client_auth=client_authentication_required,
         )
         logging.info(
-            f"Opening secure port on {url}:{port}. "
+            f'Opening secure port on {url}:{port}. '
             f"Client authentication {'REQUIRED' if client_authentication_required else 'OPTIONAL'}.",
         )
     else:
         server_credentials = grpc.local_server_credentials()
         logging.info(
-            f"Opening secure port on {url}:{port}. "
-            f"SSL credentials were not provided, therefore connection only accepts local connections.",
+            f'Opening secure port on {url}:{port}. '
+            f'SSL credentials were not provided, therefore connection only accepts local connections.',
         )
 
-    assigned_port = server.add_secure_port(f"{url}:{port}", server_credentials)
+    assigned_port = server.add_secure_port(f'{url}:{port}', server_credentials)
     assert assigned_port == port
     server.start()
 
-    logging.info(f"Remote environment running on {url}:{assigned_port}")
+    logging.info(f'Remote environment running on {url}:{assigned_port}')
 
     return server
 
@@ -118,8 +118,8 @@ def space_to_dtype(space: Union[gym.Space, gymnasium.Space]) -> dm_env_rpc_pb2.D
         dtype = dm_env_rpc_pb2.UINT8
     else:
         logging.error(
-            f"Unexpected dtype {space.dtype} of space {space}, cannot convert to TensorSpec-dtype."
-            f"Support for this dtype can be added at the location of the raised ValueError.",
+            f'Unexpected dtype {space.dtype} of space {space}, cannot convert to TensorSpec-dtype.'
+            f'Support for this dtype can be added at the location of the raised ValueError.',
         )
         raise ValueError
 
@@ -144,36 +144,36 @@ def space_to_bounds(space: Union[gym.Space, gymnasium.Space]) -> tuple:
         high = [discrete_space.start + discrete_space.n - 1 for discrete_space in space]
         return low, high
     logging.error(
-        f"Unexpected space type {type(space)} of space {space}, cannot extract higher and lower bounds."
-        f"Support for this space type can be added at the location of the raised ValueError.",
+        f'Unexpected space type {type(space)} of space {space}, cannot extract higher and lower bounds.'
+        f'Support for this space type can be added at the location of the raised ValueError.',
     )
     raise ValueError
 
 
 def create_gym_environment(args: RemoteArgs) -> Union[gym.Env, gymnasium.Env]:
     # Clone the given repository
-    repo = args.get("repo", None)
-    reference = args.get("reference", None)
-    working_dir = Path("./") if repo is None else RepoManager().get(repo, reference)
+    repo = args.get('repo', None)
+    reference = args.get('reference', None)
+    working_dir = Path('./') if repo is None else RepoManager().get(repo, reference)
 
     # Set to current directory and add the common subdir "src"
-    sys.path.insert(0, str((working_dir / "src").resolve()))
+    sys.path.insert(0, str((working_dir / 'src').resolve()))
     os.chdir(working_dir.resolve())
 
     # Enforce relative paths
-    entrypoint = args.get("entrypoint", None)
+    entrypoint = args.get('entrypoint', None)
     if entrypoint is None:
-        raise ValueError("No entrypoint provided.")
+        raise ValueError('No entrypoint provided.')
     entrypoint = Path(entrypoint).resolve().relative_to(Path().resolve())
 
     # Load the entrypoint
-    spec = importlib.util.spec_from_file_location("module.name", entrypoint)
+    spec = importlib.util.spec_from_file_location('module.name', entrypoint)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
     # Instantiate the environment
-    create_environment = getattr(module, "create_environment", None)
-    environment = create_environment(**args.get("entrypoint_kwargs", {}))
+    create_environment = getattr(module, 'create_environment', None)
+    environment = create_environment(**args.get('entrypoint_kwargs', {}))
     return environment
 
 
@@ -187,7 +187,7 @@ def run_env_loop(
 
         action_spec = {
             1: dm_env_rpc_pb2.TensorSpec(
-                name="action",
+                name='action',
                 shape=env.action_space.shape,
                 dtype=space_to_dtype(env.action_space),
             ),
@@ -195,11 +195,11 @@ def run_env_loop(
 
         observation_spec = {
             1: dm_env_rpc_pb2.TensorSpec(
-                name="observation",
+                name='observation',
                 shape=env.observation_space.shape,
                 dtype=space_to_dtype(env.observation_space),
             ),
-            2: dm_env_rpc_pb2.TensorSpec(name="reward", dtype=dm_env_rpc_pb2.FLOAT),
+            2: dm_env_rpc_pb2.TensorSpec(name='reward', dtype=dm_env_rpc_pb2.FLOAT),
         }
 
         action_space_bounds = space_to_bounds(env.action_space)
@@ -217,11 +217,11 @@ def run_env_loop(
             maximum=env.reward_range[1],
         )
 
-        if env.render_mode == "rgb_array":
+        if env.render_mode == 'rgb_array':
             env.reset()
             render_shape = env.render().shape
             observation_spec.update(
-                {3: dm_env_rpc_pb2.TensorSpec(name="rendering", shape=render_shape, dtype=dm_env_rpc_pb2.UINT8)},
+                {3: dm_env_rpc_pb2.TensorSpec(name='rendering', shape=render_shape, dtype=dm_env_rpc_pb2.UINT8)},
             )
             tensor_spec_utils.set_bounds(
                 observation_spec[3],
@@ -230,8 +230,8 @@ def run_env_loop(
             )
 
         # Pass action and obs layout
-        out_queue.put({"action_spec": action_spec})
-        out_queue.put({"observation_spec": observation_spec})
+        out_queue.put({'action_spec': action_spec})
+        out_queue.put({'observation_spec': observation_spec})
 
         while True:
             action, reset = in_queue.get()
@@ -246,14 +246,14 @@ def run_env_loop(
             else:
                 observation, reward, terminated, truncated, info = env.step(action)
 
-            rendering = env.render() if env.render_mode == "rgb_array" else None
+            rendering = env.render() if env.render_mode == 'rgb_array' else None
 
-            out_queue.put({"step": (observation, reward, terminated, truncated, info, rendering)})
+            out_queue.put({'step': (observation, reward, terminated, truncated, info, rendering)})
 
         env.close()
     except Exception as e:
-        out_queue.put({"exception": e})
-        logging.exception("Stacktrace: %s", traceback.format_exc())
+        out_queue.put({'exception': e})
+        logging.exception('Stacktrace: %s', traceback.format_exc())
 
 
 def terminate_process(proc: mp.Process, grace_period: float = 15.0) -> None:
@@ -288,38 +288,38 @@ class ProcessedEnv:
         self.env_id = env_id
 
         # We pass the env_id as an additional kwarg
-        args["entrypoint_kwargs"]["env_id"] = self.env_id
+        args['entrypoint_kwargs']['env_id'] = self.env_id
 
         self.process = (Thread if use_thread else mp.Process)(
             target=run_env_loop, args=(args, self.in_queue, self.out_queue),
         )
         self.process.start()
 
-        self.action_spec = self.get_message_from_out_queue("action_spec")
-        self.observation_spec = self.get_message_from_out_queue("observation_spec")
+        self.action_spec = self.get_message_from_out_queue('action_spec')
+        self.observation_spec = self.get_message_from_out_queue('observation_spec')
 
         self.action_manager = spec_manager.SpecManager(self.action_spec)
         self.observation_manager = spec_manager.SpecManager(self.observation_spec)
 
     def get_message_from_out_queue(self, key: str):
         msg = self.out_queue.get()
-        if "exception" in msg:
-            raise msg["exception"]
+        if 'exception' in msg:
+            raise msg['exception']
         if key not in msg:
             raise ValueError(
-                "Unexpected message in remote-gym communication between servicer and environment execution loop: "
-                f"Expected message with content key {key}, but got following message: {msg}",
+                'Unexpected message in remote-gym communication between servicer and environment execution loop: '
+                f'Expected message with content key {key}, but got following message: {msg}',
             )
         return msg[key]
 
     def close(self):
-        logging.info("Closing process!")
+        logging.info('Closing process!')
         self.in_queue.put((None, None))
         self.process.join(timeout=15.0)
 
         if self.process.is_alive():
             if isinstance(self.process, mp.Process):
-                logging.warning("Process does not close on its own, terminating!")
+                logging.warning('Process does not close on its own, terminating!')
                 terminate_process(self.process)
             else:
                 logging.warning(
@@ -329,7 +329,7 @@ class ProcessedEnv:
     def step(self, action):
         self.in_queue.put((action, self.should_reset))
         self.should_reset = False
-        return self.get_message_from_out_queue("step")
+        return self.get_message_from_out_queue('step')
 
     def reset(self):
         self.should_reset = True
@@ -348,13 +348,13 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
 
     def get_environment(self, user: str) -> ProcessedEnv:
         if user not in self.environments:
-            raise ValueError(f"Environment for user {user} does not exist.")
+            raise ValueError(f'Environment for user {user} does not exist.')
         return self.environments[user]
 
     def new_environment(self, user: str, args: RemoteArgs):
         # We do not permit custom repositories for security reasons
-        if args.get("repo", None) is not None:
-            raise ValueError("Custom repositories are prohibited!")
+        if args.get('repo', None) is not None:
+            raise ValueError('Custom repositories are prohibited!')
 
         # Clear stale status
         if user in self.users_waiting_for_environment_destruction:
@@ -366,23 +366,23 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
 
         # Allocate unique id
         if len(self.available_env_ids) == 0:
-            raise ValueError("Max environment count exceeded.")
+            raise ValueError('Max environment count exceeded.')
         env_id = self.available_env_ids.pop()
 
         # Merge remote args
         merged_args: RemoteArgs = {**self.default_args, **args}
-        merged_args["entrypoint_kwargs"] = {
-            **self.default_args.get("entrypoint_kwargs", {}),
-            **args.get("entrypoint_kwargs", {}),
+        merged_args['entrypoint_kwargs'] = {
+            **self.default_args.get('entrypoint_kwargs', {}),
+            **args.get('entrypoint_kwargs', {}),
         }
 
         # Start environment
         self.environments[user] = ProcessedEnv(merged_args, self.use_thread, env_id)
-        logging.info(f"Created new environment for user {user} ({len(self.environments)} total active)")
+        logging.info(f'Created new environment for user {user} ({len(self.environments)} total active)')
 
         # Check if environment got stale and destroy it again
         if user in self.users_waiting_for_environment_destruction:
-            logging.info("Environment got stale, destroying it again")
+            logging.info('Environment got stale, destroying it again')
             self.destroy_environment(user)
 
     def destroy_environment(self, user: str):
@@ -390,9 +390,9 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
             self.environments[user].close()
             self.available_env_ids.append(self.environments[user].env_id)
             del self.environments[user]
-            logging.info(f"Destroyed environment for user {user} ({len(self.environments)} total active)")
+            logging.info(f'Destroyed environment for user {user} ({len(self.environments)} total active)')
         else:
-            logging.info(f"Attempted to destroy non existing environment for user {user}.")
+            logging.info(f'Attempted to destroy non existing environment for user {user}.')
 
             # Mark as stale in case the env was still booting up
             self.users_waiting_for_environment_destruction.add(user)
@@ -420,26 +420,26 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
             environment_response = dm_env_rpc_pb2.EnvironmentResponse()
 
             try:
-                message_type = request.WhichOneof("payload")
+                message_type = request.WhichOneof('payload')
                 internal_request = getattr(request, message_type)
-                logging.debug(f"Received message of type {message_type}.")
+                logging.debug(f'Received message of type {message_type}.')
 
-                if message_type == "create_world":
-                    response = dm_env_rpc_pb2.CreateWorldResponse(world_name="world")
+                if message_type == 'create_world':
+                    response = dm_env_rpc_pb2.CreateWorldResponse(world_name='world')
 
                     # Make sure to shutdown when the client leaves
                     # TODO: memory leak if a user creates multiple worlds
                     context.add_callback(lambda p=context.peer(): self.destroy_environment(p))
 
-                    packed_args = internal_request.settings["args"]
+                    packed_args = internal_request.settings['args']
                     args = (
                         {}
-                        if packed_args.WhichOneof("payload") is None
+                        if packed_args.WhichOneof('payload') is None
                         else json.loads(tensor_utils.unpack_tensor(packed_args))
                     )
                     self.new_environment(context.peer(), args)
 
-                elif message_type == "join_world":
+                elif message_type == 'join_world':
                     environment = self.get_environment(context.peer())
                     environment.reset()
 
@@ -449,18 +449,18 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
                     for uid, observation_space in environment.observation_spec.items():
                         response.specs.observations[uid].CopyFrom(observation_space)
 
-                elif message_type == "step":
+                elif message_type == 'step':
                     environment = self.get_environment(context.peer())
 
                     unpacked_actions = environment.action_manager.unpack(internal_request.actions)
-                    action = unpacked_actions.get("action")
+                    action = unpacked_actions.get('action')
 
                     observation, reward, terminated, truncated, _info, rendering = environment.step(action)
 
-                    response_observations = {"observation": observation, "reward": reward}
+                    response_observations = {'observation': observation, 'reward': reward}
 
                     if rendering is not None:
-                        response_observations.update({"rendering": rendering})
+                        response_observations.update({'rendering': rendering})
 
                     packed_response_observations = environment.observation_manager.pack(response_observations)
 
@@ -476,7 +476,7 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
                     else:
                         response.state = dm_env_rpc_pb2.EnvironmentStateType.RUNNING
 
-                elif message_type == "reset":
+                elif message_type == 'reset':
                     environment = self.get_environment(context.peer())
                     environment.reset()
 
@@ -486,21 +486,21 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
                     for uid, observation_space in environment.observation_spec.items():
                         response.specs.observations[uid].CopyFrom(observation_space)
 
-                elif message_type == "reset_world":
+                elif message_type == 'reset_world':
                     environment = self.get_environment(context.peer())
                     self.new_environment(context.peer(), environment.args)
 
                     response = dm_env_rpc_pb2.ResetWorldResponse()
 
-                elif message_type == "leave_world":
+                elif message_type == 'leave_world':
                     response = dm_env_rpc_pb2.LeaveWorldResponse()
 
-                elif message_type == "destroy_world":
+                elif message_type == 'destroy_world':
                     self.destroy_environment(context.peer())
                     response = dm_env_rpc_pb2.DestroyWorldResponse()
 
                 else:
-                    raise RuntimeError(f"Unhandled message: {message_type}")
+                    raise RuntimeError(f'Unhandled message: {message_type}')
 
                 getattr(environment_response, message_type).CopyFrom(response)
 

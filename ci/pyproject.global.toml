@@ -60,16 +60,8 @@ suppress-dummy-args = true
 
 [lint.flake8-quotes]
 docstring-quotes = "double"
-inline-quotes = "double"
+inline-quotes = "single"
 multiline-quotes = "double"
 
 [lint.mccabe]
 max-complexity = 10
-
-[lint.pep8-naming]
-classmethod-decorators = [
-  "prop.cls",
-  "pin.any",
-  "pin.cls",
-  "pin.root"
-]
