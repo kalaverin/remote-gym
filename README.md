@@ -344,13 +344,13 @@ After validating the readiness for an update, it prompts to proceed. Once confir
     #
 
     branch="$(git rev-parse --quiet --abbrev-ref HEAD 2>/dev/null)"
-    # if [ -z "$branch" ]; then
-    #     exit 1
-    # elif [ "$branch" == "master" ]; then
-    #     echo "using main master mode"
-    # else
-    #     exit 1
-    # fi
+    if [ -z "$branch" ]; then
+        exit 1
+    elif [ "$branch" == "master" ]; then
+        echo "using main master mode"
+    else
+        exit 1
+    fi
 
     #
 
