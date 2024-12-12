@@ -10,5 +10,5 @@ except ImportError:
     typing.Protocol = typing_extensions.Protocol
     typing.runtime_checkable = typing_extensions.runtime_checkable
 
-from .remote_environment import RemoteArgs, RemoteEnvironment
-from .remote_environment_management import create_remote_environment_server
+from remote_gym.remote_environment import RemoteArgs, RemoteEnvironment
+from remote_gym.remote_environment_management import create_remote_environment_server

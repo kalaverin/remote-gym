@@ -30,9 +30,9 @@ from remote_gym.repo_manager import RepoManager
 
 def create_remote_environment_server(
     default_args: RemoteArgs,
-    url: Text,
+    url: str,
     port: int,
-    server_credentials_paths: Optional[Tuple[Text, Text, Optional[Text]]] = None,
+    server_credentials_paths: Optional[tuple[str, str, Optional[str]]] = None,
     use_thread: bool = False,
 ) -> grpc.Server:
     """
@@ -83,13 +83,13 @@ def create_remote_environment_server(
         )
         logging.info(
             f"Opening secure port on {url}:{port}. "
-            f"Client authentication {'REQUIRED' if client_authentication_required else 'OPTIONAL'}."
+            f"Client authentication {'REQUIRED' if client_authentication_required else 'OPTIONAL'}.",
         )
     else:
         server_credentials = grpc.local_server_credentials()
         logging.info(
             f"Opening secure port on {url}:{port}. "
-            f"SSL credentials were not provided, therefore connection only accepts local connections."
+            f"SSL credentials were not provided, therefore connection only accepts local connections.",
         )
 
     assigned_port = server.add_secure_port(f"{url}:{port}", server_credentials)
@@ -119,14 +119,14 @@ def space_to_dtype(space: Union[gym.Space, gymnasium.Space]) -> dm_env_rpc_pb2.D
     else:
         logging.error(
             f"Unexpected dtype {space.dtype} of space {space}, cannot convert to TensorSpec-dtype."
-            f"Support for this dtype can be added at the location of the raised ValueError."
+            f"Support for this dtype can be added at the location of the raised ValueError.",
         )
         raise ValueError
 
     return dtype
 
 
-def space_to_bounds(space: Union[gym.Space, gymnasium.Space]) -> Tuple:
+def space_to_bounds(space: Union[gym.Space, gymnasium.Space]) -> tuple:
     """Extract the upper and lower bounds of the Gym space.
 
     Args:
@@ -137,18 +137,17 @@ def space_to_bounds(space: Union[gym.Space, gymnasium.Space]) -> Tuple:
     """
     if isinstance(space, gym.spaces.Discrete) or isinstance(space, gymnasium.spaces.Discrete):
         return space.start, space.start + space.n - 1
-    elif isinstance(space, gym.spaces.Box) or isinstance(space, gymnasium.spaces.Box):
+    if isinstance(space, gym.spaces.Box) or isinstance(space, gymnasium.spaces.Box):
         return space.low, space.high
-    elif isinstance(space, gym.spaces.MultiDiscrete) or isinstance(space, gymnasium.spaces.MultiDiscrete):
+    if isinstance(space, gym.spaces.MultiDiscrete) or isinstance(space, gymnasium.spaces.MultiDiscrete):
         low = [discrete_space.start for discrete_space in space]
         high = [discrete_space.start + discrete_space.n - 1 for discrete_space in space]
         return low, high
-    else:
-        logging.error(
-            f"Unexpected space type {type(space)} of space {space}, cannot extract higher and lower bounds."
-            f"Support for this space type can be added at the location of the raised ValueError."
-        )
-        raise ValueError
+    logging.error(
+        f"Unexpected space type {type(space)} of space {space}, cannot extract higher and lower bounds."
+        f"Support for this space type can be added at the location of the raised ValueError.",
+    )
+    raise ValueError
 
 
 def create_gym_environment(args: RemoteArgs) -> Union[gym.Env, gymnasium.Env]:
@@ -165,7 +164,7 @@ def create_gym_environment(args: RemoteArgs) -> Union[gym.Env, gymnasium.Env]:
     entrypoint = args.get("entrypoint", None)
     if entrypoint is None:
         raise ValueError("No entrypoint provided.")
-    entrypoint = Path(entrypoint).resolve().relative_to(Path(".").resolve())
+    entrypoint = Path(entrypoint).resolve().relative_to(Path().resolve())
 
     # Load the entrypoint
     spec = importlib.util.spec_from_file_location("module.name", entrypoint)
@@ -191,7 +190,7 @@ def run_env_loop(
                 name="action",
                 shape=env.action_space.shape,
                 dtype=space_to_dtype(env.action_space),
-            )
+            ),
         }
 
         observation_spec = {
@@ -209,7 +208,7 @@ def run_env_loop(
         tensor_spec_utils.set_bounds(action_spec[1], minimum=action_space_bounds[0], maximum=action_space_bounds[1])
 
         tensor_spec_utils.set_bounds(
-            observation_spec[1], minimum=observation_space_bounds[0], maximum=observation_space_bounds[1]
+            observation_spec[1], minimum=observation_space_bounds[0], maximum=observation_space_bounds[1],
         )
 
         tensor_spec_utils.set_bounds(
@@ -222,7 +221,7 @@ def run_env_loop(
             env.reset()
             render_shape = env.render().shape
             observation_spec.update(
-                {3: dm_env_rpc_pb2.TensorSpec(name="rendering", shape=render_shape, dtype=dm_env_rpc_pb2.UINT8)}
+                {3: dm_env_rpc_pb2.TensorSpec(name="rendering", shape=render_shape, dtype=dm_env_rpc_pb2.UINT8)},
             )
             tensor_spec_utils.set_bounds(
                 observation_spec[3],
@@ -254,7 +253,7 @@ def run_env_loop(
         env.close()
     except Exception as e:
         out_queue.put({"exception": e})
-        logging.error("Stacktrace: %s", traceback.format_exc())
+        logging.exception("Stacktrace: %s", traceback.format_exc())
 
 
 def terminate_process(proc: mp.Process, grace_period: float = 15.0) -> None:
@@ -292,7 +291,7 @@ class ProcessedEnv:
         args["entrypoint_kwargs"]["env_id"] = self.env_id
 
         self.process = (Thread if use_thread else mp.Process)(
-            target=run_env_loop, args=(args, self.in_queue, self.out_queue)
+            target=run_env_loop, args=(args, self.in_queue, self.out_queue),
         )
         self.process.start()
 
@@ -309,7 +308,7 @@ class ProcessedEnv:
         if key not in msg:
             raise ValueError(
                 "Unexpected message in remote-gym communication between servicer and environment execution loop: "
-                f"Expected message with content key {key}, but got following message: {msg}"
+                f"Expected message with content key {key}, but got following message: {msg}",
             )
         return msg[key]
 
@@ -324,7 +323,7 @@ class ProcessedEnv:
                 terminate_process(self.process)
             else:
                 logging.warning(
-                    "Thread does not close on its own, but since it's a thread we can't forcefully terminate!"
+                    "Thread does not close on its own, but since it's a thread we can't forcefully terminate!",
                 )
 
     def step(self, action):
@@ -469,7 +468,7 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
 
                     for requested_observation in internal_request.requested_observations:
                         response.observations[requested_observation].CopyFrom(
-                            packed_response_observations[requested_observation]
+                            packed_response_observations[requested_observation],
                         )
                     if terminated or truncated:
                         response.state = dm_env_rpc_pb2.EnvironmentStateType.TERMINATED
@@ -501,7 +500,7 @@ class RemoteEnvironmentServicer(dm_env_rpc_pb2_grpc.EnvironmentServicer):
                     response = dm_env_rpc_pb2.DestroyWorldResponse()
 
                 else:
-                    raise RuntimeError("Unhandled message: {}".format(message_type))
+                    raise RuntimeError(f"Unhandled message: {message_type}")
 
                 getattr(environment_response, message_type).CopyFrom(response)
 

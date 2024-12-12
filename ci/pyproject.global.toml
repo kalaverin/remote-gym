@@ -3,7 +3,7 @@ exclude = [
   ".git"
 ]
 lint.ignore = [
-  "F401",  # unused import
+  "F401"  # unused import
 ]
 lint.select = [
   "A",

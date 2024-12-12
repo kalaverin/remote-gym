@@ -74,7 +74,7 @@ if __name__ == "__main__":
         remote_args={
             "entrypoint_kwargs": {
                 "env": "Taxi-v3",
-            }
+            },
         },
     )
 

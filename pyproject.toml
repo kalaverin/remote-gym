@@ -8,9 +8,6 @@ requires = [
 extend = "ci/pyproject.toml"
 
 [tool.poetry]
-
-version = "0.5.0"
-description = "This is a module to run Gym environments remotely, to enable splitting environment hosting and agent training into separate processes (or even separate machines)."
 authors = [
   "Alex Kalaverin <alex@kalaver.in>",
   "Alexander Zap <a_zap@wargaming.net>"
@@ -26,7 +23,9 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent"
 ]
+description = "This is a module to run Gym environments remotely, to enable splitting environment hosting and agent training into separate processes (or even separate machines)."
 homepage = "https://kalaver.in"
+include = ["src/remote_gym/res/*"]
 keywords = [
   "dataclass",
   "decorators",
@@ -43,33 +42,33 @@ keywords = [
 license = "Proprietary"
 name = "remote-gym"
 packages = [
-    { include = "remote_gym", from = "src" },
+  {include = "remote_gym", from = "src"}
 ]
-include = ["src/remote_gym/res/*"]
 readme = "README.md"
+version = "0.5.0"
 
 [tool.poetry.dependencies]
+dm-env-rpc = "^1.1.6"
+fasteners = "^0.19"
+gitpython = "^3.1.43"
+gym = "^0.26.2"
+gymnasium = "^0.29.0"
+opencv-python = "^4.9.0.80"
+protobuf = ">=3.20, <5"
+psutil = "^6.0.0"
 python = ">=3.9,<3.11"
 setuptools = "^75.6.0"
-gymnasium = "^0.29.0"
-gym = "^0.26.2"
-protobuf = ">=3.20, <5"
-dm-env-rpc = "^1.1.6"
-opencv-python = "^4.9.0.80"
-gitpython = "^3.1.43"
-fasteners = "^0.19"
-psutil = "^6.0.0"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.2"
-pytest-cov = "^4.0"
-tqdm = "^4.66.1"
-gym = { version = "^0.26.2", extras = ["classic-control"] }
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3"
 pre-commit = "^4.0.1"
 ruff = "^0.8.3"
+
+[tool.poetry.group.test.dependencies]
+gym = {version = "^0.26.2", extras = ["classic-control"]}
+pytest = "^7.2"
+pytest-cov = "^4.0"
+tqdm = "^4.66.1"
 
 [tool.ruff]
 extend = "ci/pyproject.toml"
