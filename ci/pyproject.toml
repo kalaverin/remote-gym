@@ -1,0 +1,17 @@
+[lint.pycodestyle]
+ignore-overlong-task-comments = true
+max-doc-length = 89
+
+[tool.black]
+line-length = 89
+target-version = 'py38'
+
+[tool.ruff]
+extend = "pyproject.global.toml"
+fix = true
+line-length = 89
+output-format = "full"
+target-version = "py38"
+lint.extend-ignore = [
+  "G004"
+]
